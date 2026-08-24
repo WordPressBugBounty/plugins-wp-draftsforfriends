@@ -10,9 +10,7 @@
  * @package WP-DraftsForFriends
  */
 
-if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
-	exit();
-}
+defined( 'WP_UNINSTALL_PLUGIN' ) || exit;
 
 require_once __DIR__ . '/includes/class-wp-draftsforfriends-options.php';
 require_once __DIR__ . '/includes/class-wp-draftsforfriends-install.php';
@@ -44,10 +42,22 @@ function wp_draftsforfriends_delete_options() {
 	}
 }
 
+/**
+ * Delete this plugin's data from the current site.
+ *
+ * The one verb the loop below calls: the rows and the shares table go
+ * together or not at all.
+ *
+ * @return void
+ */
+function wp_draftsforfriends_uninstall_site() {
+	wp_draftsforfriends_delete_options();
+	WP_DraftsForFriends_Install::drop_table();
+}
+
 if ( is_multisite() ) {
 	// 'number' => 0 lifts WP_Site_Query's default cap of 100, which would
-	// otherwise leave the options and the table behind on every site past the
-	// hundredth while still reporting a clean uninstall.
+	// otherwise skip every site past the hundredth while reporting success.
 	$wp_draftsforfriends_site_ids = get_sites(
 		array(
 			'fields' => 'ids',
@@ -58,8 +68,7 @@ if ( is_multisite() ) {
 	foreach ( $wp_draftsforfriends_site_ids as $wp_draftsforfriends_site_id ) {
 		switch_to_blog( (int) $wp_draftsforfriends_site_id );
 
-		wp_draftsforfriends_delete_options();
-		WP_DraftsForFriends_Install::drop_table();
+		wp_draftsforfriends_uninstall_site();
 
 		// Inside the loop: switch_to_blog() pushes onto a stack, so restoring
 		// once after the loop leaves it unwound by exactly one.
@@ -68,6 +77,5 @@ if ( is_multisite() ) {
 
 	unset( $wp_draftsforfriends_site_ids, $wp_draftsforfriends_site_id );
 } else {
-	wp_draftsforfriends_delete_options();
-	WP_DraftsForFriends_Install::drop_table();
+	wp_draftsforfriends_uninstall_site();
 }

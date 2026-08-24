@@ -5,9 +5,7 @@
  * @package WP-DraftsForFriends
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Every read and write of the shared drafts table.
@@ -194,6 +192,36 @@ class WP_DraftsForFriends_Shares {
 		return (int) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT COUNT(*) FROM {$wpdb->draftsforfriends} d INNER JOIN {$wpdb->posts} p ON d.post_id = p.ID WHERE ( %d = 1 OR d.user_id = %d )",
+				self::sees_every_share(),
+				get_current_user_id()
+			)
+		);
+	}
+
+	/**
+	 * Every share for one post, scoped to what the current user may see.
+	 *
+	 * The same join and visibility clause as query(), so the meta box and the
+	 * Shared Drafts screen cannot disagree about whose shares somebody is shown.
+	 *
+	 * @since 2.0.1
+	 *
+	 * @param int $post_id Post the shares belong to.
+	 * @return array
+	 */
+	public static function for_post( $post_id ) {
+		global $wpdb;
+
+		$post_id = (int) $post_id;
+
+		if ( 0 >= $post_id ) {
+			return array();
+		}
+
+		return $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT d.*, p.post_title AS post_title FROM {$wpdb->draftsforfriends} d INNER JOIN {$wpdb->posts} p ON d.post_id = p.ID WHERE d.post_id = %d AND ( %d = 1 OR d.user_id = %d ) ORDER BY d.date_created DESC",
+				$post_id,
 				self::sees_every_share(),
 				get_current_user_id()
 			)

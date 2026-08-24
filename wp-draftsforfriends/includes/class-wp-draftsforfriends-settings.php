@@ -5,9 +5,7 @@
  * @package WP-DraftsForFriends
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Builds the Settings tab of the Drafts for Friends page with the Settings API.
@@ -81,12 +79,12 @@ class WP_DraftsForFriends_Settings {
 	const SECTION_SHARE = 'wp_draftsforfriends_share';
 
 	/**
-	 * Hook the settings screen into WordPress.
+	 * Hook registration.
 	 *
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'admin_init', array( __CLASS__, 'register_settings' ) );
+		add_action( 'admin_init', array( __CLASS__, 'register' ) );
 		add_filter( 'plugin_action_links_' . plugin_basename( WP_DRAFTSFORFRIENDS_MAIN_FILE ), array( __CLASS__, 'action_links' ) );
 
 		/*
@@ -117,7 +115,7 @@ class WP_DraftsForFriends_Settings {
 	 */
 	public static function capability( $context = 'settings' ) {
 		/** This filter is documented in includes/class-wp-draftsforfriends-admin.php */
-		return apply_filters( 'wp_draftsforfriends_capability', self::CAPABILITY, $context );
+		return (string) apply_filters( 'wp_draftsforfriends_capability', self::CAPABILITY, $context );
 	}
 
 	/**
@@ -125,14 +123,14 @@ class WP_DraftsForFriends_Settings {
 	 *
 	 * @return void
 	 */
-	public static function register_settings() {
+	public static function register() {
 		register_setting(
 			self::GROUP,
 			WP_DraftsForFriends_Options::OPTION,
 			array(
 				'type'              => 'array',
 				'sanitize_callback' => array( 'WP_DraftsForFriends_Options', 'sanitize' ),
-				'default'           => WP_DraftsForFriends_Options::get_defaults(),
+				'default'           => WP_DraftsForFriends_Options::defaults(),
 			)
 		);
 

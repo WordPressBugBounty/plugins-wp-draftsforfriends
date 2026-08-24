@@ -5,9 +5,7 @@
  * @package WP-DraftsForFriends
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Registers the menu, renders the plugin's one page and handles its writes.
@@ -19,7 +17,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * The plugin has one admin page under Posts, with two flat tabs: Shared Drafts
  * and Settings. It does one thing -- share a post with somebody -- and its list
  * is a list of shared posts, so it belongs where WordPress keeps post-scoped
- * tools. See admin_menu() for why that is not a top-level menu, and render_page()
+ * tools. See add_page() for why that is not a top-level menu, and render_page()
  * for the capability arrangement the tabs need.
  *
  * Every path here works with JavaScript turned off. The add form and both bulk
@@ -125,13 +123,13 @@ class WP_DraftsForFriends_Admin {
 	private static $groups = null;
 
 	/**
-	 * Hook the screen into WordPress.
+	 * Hook registration.
 	 *
 	 * @return void
 	 */
 	public static function init() {
-		add_action( 'admin_menu', array( __CLASS__, 'admin_menu' ) );
-		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'admin_enqueue_scripts' ) );
+		add_action( 'admin_menu', array( __CLASS__, 'add_page' ) );
+		add_action( 'admin_enqueue_scripts', array( __CLASS__, 'enqueue' ) );
 		add_filter( 'set-screen-option', array( __CLASS__, 'save_screen_option' ), 10, 3 );
 	}
 
@@ -148,7 +146,7 @@ class WP_DraftsForFriends_Admin {
 	 */
 	public static function capability( $context = 'shares' ) {
 		/**
-		 * Filters the capability required to reach WP-DraftsForFriends.
+		 * Filters the capability required to reach a WP-DraftsForFriends screen.
 		 *
 		 * The default is publish_posts for the shared drafts screen and
 		 * manage_options for the settings screen. Everything the shared drafts
@@ -157,10 +155,10 @@ class WP_DraftsForFriends_Admin {
 		 *
 		 * @since 2.0.0
 		 *
-		 * @param string $capability Capability required.
+		 * @param string $capability The required capability.
 		 * @param string $context    What is being gated: 'shares' or 'settings'.
 		 */
-		return apply_filters( 'wp_draftsforfriends_capability', self::CAPABILITY, $context );
+		return (string) apply_filters( 'wp_draftsforfriends_capability', self::CAPABILITY, $context );
 	}
 
 	/**
@@ -189,7 +187,7 @@ class WP_DraftsForFriends_Admin {
 	 *
 	 * @return void
 	 */
-	public static function admin_menu() {
+	public static function add_page() {
 		self::$hook_suffix = add_posts_page(
 			__( 'Drafts for Friends', 'wp-draftsforfriends' ),
 			__( 'WP-DraftsForFriends', 'wp-draftsforfriends' ),
@@ -334,11 +332,21 @@ class WP_DraftsForFriends_Admin {
 	 * @param string $hook_suffix Current admin page.
 	 * @return void
 	 */
-	public static function admin_enqueue_scripts( $hook_suffix ) {
+	public static function enqueue( $hook_suffix ) {
 		if ( '' === self::$hook_suffix || self::$hook_suffix !== $hook_suffix ) {
 			return;
 		}
 
+		self::enqueue_assets();
+	}
+
+	/**
+	 * The actual enqueue, shared with the post editor's meta box: each screen
+	 * decides whether it is the one being drawn, what loads lives here.
+	 *
+	 * @return void
+	 */
+	public static function enqueue_assets() {
 		/*
 		 * The URLs come from WP_DRAFTSFORFRIENDS_URL, which is derived from the
 		 * main file. Building them from the literal 'wp-draftsforfriends/js/...'
@@ -368,7 +376,7 @@ class WP_DraftsForFriends_Admin {
 				'errorExpires'  => __( 'Please choose a valid duration.', 'wp-draftsforfriends' ),
 				'errorSelect'   => __( 'Please select at least one shared draft.', 'wp-draftsforfriends' ),
 				'confirmRevoke' => __( 'Revoke the selected shared drafts? The links stop working immediately and cannot be restored.', 'wp-draftsforfriends' ),
-				'copy'          => __( 'Copy link', 'wp-draftsforfriends' ),
+				'copy'          => __( 'Copy Link', 'wp-draftsforfriends' ),
 				'copied'        => __( 'Copied!', 'wp-draftsforfriends' ),
 				'copyFailed'    => __( 'Could not copy the link. Select it and copy it by hand.', 'wp-draftsforfriends' ),
 			)

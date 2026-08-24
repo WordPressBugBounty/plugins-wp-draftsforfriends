@@ -3,7 +3,7 @@
  * Plugin Name: WP-DraftsForFriends
  * Plugin URI: https://lesterchan.net/portfolio/programming/php/
  * Description: Now you don't need to add friends as users to the blog in order to let them preview your drafts.
- * Version: 2.0.0
+ * Version: 2.0.1
  * Requires at least: 6.8
  * Requires PHP: 8.2
  * Author: Lester 'GaMerZ' Chan
@@ -34,9 +34,7 @@
 	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /*
  * WP_DRAFTSFORFRIENDS_DIR and WP_DRAFTSFORFRIENDS_URL are derived from __FILE__
@@ -45,7 +43,7 @@ if ( ! defined( 'ABSPATH' ) ) {
  * the text domain and the page slug, neither of which may change because
  * somebody unzipped the plugin into a differently named directory.
  */
-define( 'WP_DRAFTSFORFRIENDS_VERSION', '2.0.0' );
+define( 'WP_DRAFTSFORFRIENDS_VERSION', '2.0.1' );
 define( 'WP_DRAFTSFORFRIENDS_DB_VERSION', '1' );
 define( 'WP_DRAFTSFORFRIENDS_SLUG', 'wp-draftsforfriends' );
 define( 'WP_DRAFTSFORFRIENDS_MAIN_FILE', __FILE__ );

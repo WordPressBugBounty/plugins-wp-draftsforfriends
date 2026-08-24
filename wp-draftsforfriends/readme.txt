@@ -3,8 +3,8 @@ Contributors: GamerZ
 Donate link: https://lesterchan.net/site/donation/  
 Tags: friends, preview, drafts, send, share draft  
 Requires at least: 6.8  
-Tested up to: 7.0  
-Stable tag: 2.0.0  
+Tested up to: 7.1  
+Stable tag: 2.0.1  
 Requires PHP: 8.2  
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -25,6 +25,7 @@ Modified from Drafts for Friends, originally by Neville Longbottom. The plugin i
 * An expiry you choose in seconds, minutes, hours or days, with a default you set once
 * Works for a logged-out visitor with no account
 * Scheduled and pending posts can be shared as well as drafts
+* A box in the post editor that shows the post's links and creates one on save
 * A sortable, paginated list of every link you have out, with the time each has left
 * Extend or revoke links in bulk
 * Comments are forced closed on a shared draft
@@ -44,11 +45,13 @@ There is nothing to configure before you start. Sharing takes the `publish_posts
 ## Usage
 Go to `Posts -> WP-DraftsForFriends`. The page has two tabs, **Shared Drafts** and **Settings**.
 
-Under **Share a Draft**, choose an unpublished post, set how long the link should last, and press **Share Draft**. The link appears in the list below; press **Copy link** to put it on your clipboard and send it to whoever needs it.
+Under **Share a Draft**, choose an unpublished post, set how long the link should last, and press **Share Draft**. The link appears in the list below. Hovering a row shows **Edit Draft**, which opens the post, and **Copy Link**, which puts the link on your clipboard ready to send to whoever needs it.
+
+You can also share from inside the post editor. Every unpublished post has a **Drafts for Friends** box listing its links and the time each has left, each with a **Copy Link** button; tick **Create a share link when this post is saved** and the next save creates one. A published post needs no link — anybody can read it — so the box says only that.
 
 The list shows every link you have out. **Expires After** counts down and then reads `Expired`. Twenty rows are shown at a time, every column except the link is sortable, and *Screen Options* changes how many rows you see.
 
-To extend links, set **Extend by** to the duration you want to add, tick the rows, choose **Extend selected** and press **Apply**. To revoke them, tick the rows and choose **Revoke selected**. Both are bulk actions rather than links on each row, and deliberately so: a link is a `GET`, and a browser or link checker that quietly prefetches one would have revoked every share on the page before you knew about it.
+To extend links, set **Extend by** to the duration you want to add, tick the rows, choose **Extend Selected** and press **Apply**. To revoke them, tick the rows and choose **Revoke Selected**. Both are bulk actions rather than links on each row, and deliberately so: a link is a `GET`, and a browser or link checker that quietly prefetches one would have revoked every share on the page before you knew about it.
 
 The **Settings** tab sets the duration a new share starts on. It is only a starting value — both the share form and **Extend by** can be changed for one share without changing the setting. That tab takes `manage_options`, so an author sees the Shared Drafts tab and not the Settings one.
 
@@ -133,12 +136,12 @@ The address changed, from `edit.php?page=wp-draftsforfriends/wp-draftsforfriends
 Links you have already given to friends are unaffected. Those point at the post itself and never went through the admin screen.
 
 ### Where have Extend and Delete gone from each row?
-They are bulk actions now, above and below the list. Tick the rows you want, choose **Extend selected** or **Revoke selected**, and press **Apply**. Extend uses the **Extend by** duration next to the dropdown.
+They are bulk actions now, above and below the list. Tick the rows you want, choose **Extend Selected** or **Revoke Selected**, and press **Apply**. Extend uses the **Extend by** duration next to the dropdown.
 
 A row action is a plain link, and a plain link is one browser prefetch or one link checker away from being followed without anybody meaning to. Revoking cannot be undone, and extending silently prolongs public access to something you have not published, so neither should be reachable that way.
 
 ### A friend says the link shows "Page not found"
-The link has expired, it has been revoked, or the post has been moved to the trash. Open *Posts -> WP-DraftsForFriends* and look at the **Expires After** column: an expired share reads `Expired`. Tick that row, set **Extend by**, and choose **Extend selected** — the same link starts working again. Restoring the post from the trash also makes its links work again.
+The link has expired, it has been revoked, or the post has been moved to the trash. Open *Posts -> WP-DraftsForFriends* and look at the **Expires After** column: an expired share reads `Expired`. Tick that row, set **Extend by**, and choose **Extend Selected** — the same link starts working again. Restoring the post from the trash also makes its links work again.
 
 Once the post is published the link stops previewing and simply shows the published post, which is public by then anyway.
 
@@ -152,7 +155,7 @@ No. Comments are forced closed on a shared draft.
 No. That is the point of the plugin: the link works for a logged-out visitor, and only for the post it was issued for, and only until it expires.
 
 ### Does the screen need JavaScript?
-No. Sharing, extending and revoking are ordinary form submissions handled on the server, so all three work with JavaScript turned off. The script only adds the **Copy link** button, a warning before you revoke, and catching a missing draft or a nonsense duration before the page reloads.
+No. Sharing, extending and revoking are ordinary form submissions handled on the server, so all three work with JavaScript turned off. The script only adds the copy button, a warning before you revoke, and catching a missing draft or a nonsense duration before the page reloads.
 
 ## Screenshots
 
@@ -162,8 +165,15 @@ No. Sharing, extending and revoking are ordinary form submissions handled on the
 
 ## Changelog
 
+### 2.0.1
+* NEW: A Drafts for Friends box in the post editor: it lists the post's share links with the time each has left and a Copy Link button for each, and creates a new link when the post is saved with its checkbox ticked. Posts only, because a share link asks for the post as `?p=<id>` and WordPress answers that for posts alone.
+* NEW: An Edit Draft row action on each row of the list, which opens the post the share is for.
+* CHANGED: Copy Link is a row action on the Post column rather than a button appended to the URL, where it landed wherever the link happened to stop wrapping. It is still a button rather than a link, so nothing copies by prefetch.
+* CHANGED: The bulk actions read Extend Selected and Revoke Selected, which is the case WordPress uses for a control you act on. They do the same thing they did.
+* CHANGED: The upgrade check runs on `init` rather than `admin_init`, so an update applied by cron or WP-CLI is migrated on the site's next request rather than waiting for somebody to open wp-admin.
+
 ### 2.0.0
-* BREAKING: Requires WordPress 6.8 and PHP 8.2, up from 6.0 and 7.4.
+* BREAKING: Requires WordPress 6.8 and PHP 8.2.
 * BREAKING: The screen has moved from `edit.php?page=wp-draftsforfriends/wp-draftsforfriends.php` to `edit.php?page=wp-draftsforfriends`, still under `Posts -> WP-DraftsForFriends`, and is now one page with two tabs, `Shared Drafts` and `Settings`. Links already sent to friends are not affected.
 * BREAKING: Extend and Delete are no longer links on each row. They are bulk actions named Extend selected and Revoke selected, applied to the rows you tick. A row action is a `GET` and one prefetch away from revoking every share on the page.
 * BREAKING: Removed the `WPDraftsForFriends` class. The plugin is now `WP_DraftsForFriends` plus `WP_DraftsForFriends_Admin`, `_Install`, `_List_Table`, `_Options`, `_Preview`, `_Settings` and `_Shares` under `includes/`.
@@ -214,7 +224,7 @@ Requires WordPress 6.8 and PHP 8.2.
 
 **Links already sent keep working.** They point at the post rather than the admin screen, and their form is unchanged: `?p=<id>&draftsforfriends=<hash>`.
 
-**Extend and Delete are bulk actions, not row links.** Tick the rows, choose **Extend selected** or **Revoke selected**, and press **Apply**; Extend uses the **Extend by** duration beside the dropdown. A row action is a plain link, and a browser that prefetches links or a link checker crawling wp-admin would have revoked every share on the page with nobody clicking anything.
+**Extend and Delete are bulk actions, not row links.** Tick the rows, choose **Extend Selected** or **Revoke Selected**, and press **Apply**; Extend uses the **Extend by** duration beside the dropdown. A row action is a plain link, and a browser that prefetches links or a link checker crawling wp-admin would have revoked every share on the page with nobody clicking anything.
 
 **Trashing a shared post now revokes its links**, and restoring it makes them work again. Deleting a post permanently deletes its shares, which used to be left behind and counted towards the total above the list without ever being listed.
 

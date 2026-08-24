@@ -5,9 +5,7 @@
  * @package WP-DraftsForFriends
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Reads and writes the plugin's two option rows.
@@ -60,7 +58,7 @@ class WP_DraftsForFriends_Options {
 	 *
 	 * @return array
 	 */
-	public static function get_defaults() {
+	public static function defaults() {
 		return array(
 			'expires' => 2,
 			'measure' => 'h',
@@ -78,7 +76,7 @@ class WP_DraftsForFriends_Options {
 	 */
 	public static function get( $key = null ) {
 		$stored  = get_option( self::OPTION, array() );
-		$options = wp_parse_args( is_array( $stored ) ? $stored : array(), self::get_defaults() );
+		$options = wp_parse_args( is_array( $stored ) ? $stored : array(), self::defaults() );
 
 		if ( null === $key ) {
 			return $options;
@@ -100,11 +98,10 @@ class WP_DraftsForFriends_Options {
 	 * nothing at all, the row is never created, and the markers are stamped
 	 * complete either way, so the upgrade can never run again.
 	 *
-	 * It was held off by nothing but the order two callbacks were added in:
-	 * `maybe_upgrade()` is hooked to `admin_init` before `Settings::init()` hooks
-	 * `register_settings()` to it at the same priority, so the upgrade went first.
-	 * Reordering those two, or any third-party `default_option_*` filter, reaches
-	 * it silently.
+	 * It was held off by nothing but hook order: `maybe_upgrade()` runs on
+	 * `init` while `Settings::init()` hooks `register()` to the later
+	 * `admin_init`, so the upgrade goes first. Reordering those two, or any
+	 * third-party `default_option_*` filter, reaches it silently.
 	 *
 	 * Passing an explicit default to `get_option()` defeats the registered one --
 	 * `filter_default_option()` returns early when a default was passed -- which
@@ -128,7 +125,7 @@ class WP_DraftsForFriends_Options {
 	 *
 	 * @return array The 'plugin' and 'db' markers, each an empty string when unset.
 	 */
-	public static function get_versions() {
+	public static function markers() {
 		$stored = get_option( self::VERSION, array() );
 
 		if ( ! is_array( $stored ) ) {
@@ -164,7 +161,7 @@ class WP_DraftsForFriends_Options {
 	 * @return array
 	 */
 	public static function sanitize( $input ) {
-		$defaults = self::get_defaults();
+		$defaults = self::defaults();
 
 		if ( ! is_array( $input ) ) {
 			return $defaults;
